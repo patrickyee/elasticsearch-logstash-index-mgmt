@@ -94,6 +94,14 @@ if [ -n "$ERROR" ]; then
   exit 1
 fi
 
+# check if this is a master, only do removal on master"
+MASTER_ID=`curl -XGET '$ELASTICSEARCH/_cat/master' | awk '{print $1}'`
+CURRENT_ID=`curl -XGET '$ELASTICSEARCH/_nodes/_local/id' | awk -F nodes '{print $2}' | awk -F\{ '{print $2}' | awk -F\" '{print $2}'`
+if ! [ $MASTER_ID=$CURRENT_ID ]; then
+  echo "Removal will be performed on master node only"
+  exit 0
+fi
+
 # Get the indices from elasticsearch
 INDICES_TEXT=`curl -s "$ELASTICSEARCH/_status?pretty=true" | grep $GREP | grep -v \"index\" | sort -r | awk -F\" {'print $2'}`
 
