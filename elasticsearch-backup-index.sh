@@ -153,6 +153,14 @@ if [ -n "$ERROR" ]; then
   exit 1
 fi
 
+# check if this is a master, only do backup on master"
+MASTER_ID=`curl -XGET '$ELASTICSEARCH/_cat/master' | awk '{print $1}'`
+CURRENT_ID=`curl -XGET '$ELASTICSEARCH/_nodes/_local/id' | awk -F nodes '{print $2}' | awk -F\{ '{print $2}' | awk -F\" '{print $2}'`
+if ! [ $MASTER_ID=$CURRENT_ID ]; then
+  echo "Backup will be performed on master node only"
+  exit 0
+fi
+
 # Default logstash index naming is hardcoded, as are YYYY-mm container directories.
 if [ -n "$DATE" ]; then
   INDEX="logstash-$DATE"
